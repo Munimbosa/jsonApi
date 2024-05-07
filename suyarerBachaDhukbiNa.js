@@ -1,58 +1,64 @@
-const fs = require("fs");
 
+const fs = require("fs");
 
 function getBankBalance(userID, bankData) {
     return bankData[userID]?.bank || 0;
 }
 
-function formatNumberWithFullForm(number) {
-    const fullForms = [
-        "",
-        "Thousand",
-        "Million",
-        "Billion",
-        "Trillion",
-        "Quadrillion",
-        "Quintillion",
-        "Sextillion",
-        "Septillion",
-        "Octillion",
-        "Nonillion",
-        "Decillion",
-        "Undecillion",
-        "Duodecillion",
-        "Tredecillion",
-        "Quattuordecillion",
-        "Quindecillion",
-        "Sexdecillion",
-        "Septendecillion",
-        "Octodecillion",
-        "Novemdecillion",
-        "Vigintillion",
-        "Unvigintillion",
-        "Duovigintillion",
-        "Tresvigintillion",
-        "Quattuorvigintillion",
-        "Quinvigintillion",
-        "Sesvigintillion",
-        "Septemvigintillion",
-        "Octovigintillion",
-        "Novemvigintillion",
-        "Trigintillion",
-        "Untrigintillion",
-        "Duotrigintillion",
-        "Googol",
-    ];
-
-    let fullFormIndex = 0;
-    while (number >= 1000 && fullFormIndex < fullForms.length - 1) {
-        number /= 1000;
-        fullFormIndex++;
-    }
-    const formattedNumber = number.toFixed(2);
-
-    return `${formattedNumber} ${fullForms[fullFormIndex]}`;
+function depositMoney(user, amount, bankData, message, usersData, event) {
+    const userMoney = usersData.get(event.senderID, "money");
+    if (isNaN(amount) || amount <= 0) return message.reply("Please enter a valid amount to deposit.");
+    if (userMoney < amount) return message.reply("You don't have enough money.");
+    bankData[user].bank += amount;
+    usersData.set(event.senderID, { money: userMoney - amount });
+    fs.writeFile("bank.json", JSON.stringify(bankData), (err) => { if (err) throw err; });
+    return message.reply(`${amount} $ has been deposited into your bank account.`);
 }
+
+function withdrawMoney(user, amount, bankData, message, usersData, event) {
+    const balance = bankData[user].bank || 0;
+    if (isNaN(amount) || amount <= 0) return message.reply("Please enter a valid amount to withdraw.");
+    if (amount > balance) return message.reply("The amount you want to withdraw is not available in your bank account.");
+    bankData[user].bank = balance - amount;
+    const userMoney = usersData.get(event.senderID, "money");
+    usersData.set(event.senderID, { money: userMoney + amount });
+    fs.writeFile("bank.json", JSON.stringify(bankData), (err) => { if (err) throw err; });
+    return message.reply(`${amount} $ has been withdrawn from your bank account.`);
+}
+
+function claimInterest(user, bankData, message) {
+    const interestRate = 0.001; 
+    const lastInterestClaimed = bankData[user].lastInterestClaimed || Date.now();
+    const currentTime = Date.now();
+    const timeDiffInSeconds = (currentTime - lastInterestClaimed) / 1000;
+    const interestEarned = bankData[user].bank * (interestRate / 365) * timeDiffInSeconds;
+    bankData[user].lastInterestClaimed = currentTime;
+    bankData[user].bank += interestEarned;
+    fs.writeFile("bank.json", JSON.stringify(bankData), (err) => {
+        if (err) throw err;
+    });
+    return message.reply(`Interest has been added to your bank account balance. The interest earned is ${interestEarned.toFixed(2)} $.`);
+}
+
+function transferMoney(user, amount, recipientUID, bankData, message) {
+    const balance = bankData[user].bank || 0;
+    if (isNaN(amount) || amount <= 0) return message.reply("Please enter a valid amount to transfer.");
+    if (balance < amount) return message.reply("The amount you wish to transfer is greater than your bank account balance.");
+    if (isNaN(recipientUID)) return message.reply("Please enter the correct recipient ID.");
+    if (!bankData[recipientUID]) {
+        bankData[recipientUID] = { bank: 0, loan: 0, lastInterestClaimed: Date.now() };
+        fs.writeFile("bank.json", JSON.stringify(bankData), (err) => {
+            if (err) throw err;
+        });
+    }
+    bankData[user].bank -= amount;
+    bankData[recipientUID].bank += amount;
+    fs.writeFile("bank.json", JSON.stringify(bankData), (err) => {
+        if (err) throw err;
+    });
+    return message.reply(`${amount} $ has been transferred to the recipient with id ${recipientUID}.`);
+}
+
 module.exports = {
     config: {
         name: "bank",
@@ -76,73 +82,26 @@ module.exports = {
     },
 
     onStart: async function ({ args, message, event, usersData }) {
-    const userMoney = await usersData.get(event.senderID, "money");
-    const user = parseInt(event.senderID);
-    const bankData = JSON.parse(fs.readFileSync("bank.json", "utf8"));
+        const user = parseInt(event.senderID);
+        const bankData = JSON.parse(fs.readFileSync("bank.json", "utf8"));
 
-    if (!bankData[user]) {
-        bankData[user] = { bank: 0, loan: 0, lastInterestClaimed: Date.now() };
-        fs.writeFile("bank.json", JSON.stringify(bankData), (err) => {
-            if (err) throw err;
-        });
-    }
-
-    const command = args[0];
-    const amount = parseInt(args[1]);
-    const recipientUID = parseInt(args[2]);
-
-    if (command === "deposit") {
-        if (isNaN(amount) || amount <= 0) return message.reply("Please enter the amount you wish to deposit in the bank.");
-        if (userMoney < amount) return message.reply("You don't have enough money.");
-        bankData[user].bank += amount;
-        await usersData.set(event.senderID, { money: userMoney - amount });
-        fs.writeFile("bank.json", JSON.stringify(bankData), (err) => { if (err) throw err; });
-        return message.reply(`${amount} $ has been deposited into your bank account.`);
-    } else if (command === "balance") {
-    const balance = getBankBalance(user, bankData);
-    const balanceInFullForm = formatNumberWithFullForm(balance);
-    return message.reply(`Your bank account balance is ${balanceInFullForm} $. ${balance}`);
-}
-    else if (command === "withdraw") {
-        const balance = bankData[user].bank || 0;
-        if (isNaN(amount) || amount <= 0) return message.reply("Please enter the amount you wish to withdraw from your bank account.");
-        if (amount > balance) return message.reply("The amount you want to withdraw is not available in your bank account.");
-        bankData[user].bank = balance - amount;
-        const userMoney = await usersData.get(event.senderID, "money");
-        await usersData.set(event.senderID, { money: userMoney + amount });
-        fs.writeFile("bank.json", JSON.stringify(bankData), (err) => { if (err) throw err; });
-        return message.reply(`${amount} $ has been withdrawn from your bank account.`);
-    } else if (command === "interest") {
-    const interestRate = 0.001; 
-    const lastInterestClaimed = bankData[user].lastInterestClaimed || Date.now();
-    const currentTime = Date.now();
-    const timeDiffInSeconds = (currentTime - lastInterestClaimed) / 1000;
-    const interestEarned = bankData[user].bank * (interestRate / 365) * timeDiffInSeconds;
-    bankData[user].lastInterestClaimed = currentTime;
-    bankData[user].bank += interestEarned;
-    fs.writeFile("bank.json", JSON.stringify(bankData), (err) => {
-        if (err) throw err;
-    });
-    return message.reply(`Interest has been added to your bank account balance. The interest earned is ${interestEarned.toFixed(2)} $.`);
-} else if (command === "transfer") {
-    const balance = bankData[user].bank || 0;
-    if (isNaN(amount) || amount <= 0) return message.reply("Please enter the amount you wish to transfer to the recipient.");
-    if (balance < amount) return message.reply("The amount you wish to transfer is greater than your bank account balance.");
-    if (isNaN(recipientUID)) return message.reply("Please enter the correct recipient ID.");
-    if (!bankData[recipientUID]) {
-        bankData[recipientUID] = { bank: 0, loan: 0, lastInterestClaimed: Date.now() };
-        fs.writeFile("bank.json", JSON.stringify(bankData), (err) => {
-            if (err) throw err;
-        });
-    }
-    bankData[user].bank -= amount;
-    bankData[recipientUID].bank += amount;
-    fs.writeFile("bank.json", JSON.stringify(bankData), (err) => {
-        if (err) throw err;
-    });
-    return message.reply(`${amount} converted to the recipient with id ${recipientUID}.`);
-} else {
+        switch (args[0]) {
+    case "deposit":
+        return depositMoney(user, parseInt(args[1]), bankData, message, usersData, event);
+    case "withdraw":
+        return withdrawMoney(user, parseInt(args[1]), bankData, message, usersData, event);
+    case "balance":
+        return checkBalance(user, bankData, message);
+    case "interest":
+        return claimInterest(user, bankData, message);
+    case "transfer":
+        return transferMoney(user, parseInt(args[1]), parseInt(args[2]), bankData, message);
+    case "loan":
+        return loanMoney(user, parseInt(args[1]), bankData, message);
+    case "repay":
+        return repayLoan(user, parseInt(args[1]), bankData, message);
+    default:
         return message.reply("Octa Bank Services 🏦\n\nDeposit 💰: Add money to your account\nWithdraw 💸: Take money out of your account\nBalance 📊: Check your account balance\nInterest 💳: Claim interest on your balance\nTransfer 🔄: Send money to another account\nLoan 💸💼: Apply for a loan\nRepay 💰: Pay back your loan\n\nFor more details, use 'help octa bank'.");
+	}
     }
-		}
-          }
+};
