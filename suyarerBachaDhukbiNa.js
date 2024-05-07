@@ -1,52 +1,56 @@
 const fs = require("fs");
+// Function to format number with full form
 function formatNumberWithFullForm(number) {
-  const fullForms = [
-    "",
-    "Thousand",
-    "Million",
-    "Billion",
-    "Trillion",
-    "Quadrillion",
-    "Quintillion",
-    "Sextillion",
-    "Septillion",
-    "Octillion",
-    "Nonillion",
-    "Decillion",
-    "Undecillion",
-    "Duodecillion",
-    "Tredecillion",
-    "Quattuordecillion",
-    "Quindecillion",
-    "Sexdecillion",
-    "Septendecillion",
-    "Octodecillion",
-    "Novemdecillion",
-    "Vigintillion",
-    "Unvigintillion",
-    "Duovigintillion",
-    "Tresvigintillion",
-    "Quattuorvigintillion",
-    "Quinvigintillion",
-    "Sesvigintillion",
-    "Septemvigintillion",
-    "Octovigintillion",
-    "Novemvigintillion",
-    "Trigintillion",
-    "Untrigintillion",
-    "Duotrigintillion",
-    "Googol",
-  ];
+    const fullForms = [
+        "",
+        "Thousand",
+        "Million",
+        "Billion",
+        "Trillion",
+        "Quadrillion",
+        "Quintillion",
+        "Sextillion",
+        "Septillion",
+        "Octillion",
+        "Nonillion",
+        "Decillion",
+        "Undecillion",
+        "Duodecillion",
+        "Tredecillion",
+        "Quattuordecillion",
+        "Quindecillion",
+        "Sexdecillion",
+        "Septendecillion",
+        "Octodecillion",
+        "Novemdecillion",
+        "Vigintillion",
+        "Unvigintillion",
+        "Duovigintillion",
+        "Tresvigintillion",
+        "Quattuorvigintillion",
+        "Quinvigintillion",
+        "Sesvigintillion",
+        "Septemvigintillion",
+        "Octovigintillion",
+        "Novemvigintillion",
+        "Trigintillion",
+        "Untrigintillion",
+        "Duotrigintillion",
+        "Googol",
+    ];
 
-  let fullFormIndex = 0;
-  while (number >= 1000 && fullFormIndex < fullForms.length - 1) {
-    number /= 1000;
-    fullFormIndex++;
-  }
-  const formattedNumber = number.toFixed(2);
+    let fullFormIndex = 0;
+    while (number >= 1000 && fullFormIndex < fullForms.length - 1) {
+        number /= 1000;
+        fullFormIndex++;
+    }
+    const formattedNumber = number.toFixed(2);
 
-  return `${formattedNumber} ${fullForms[fullFormIndex]}`;
+    return `${formattedNumber} ${fullForms[fullFormIndex]}`;
 }
+
+// Inside your onStart function where you want to display the balance in full form
+
 module.exports = {
     config: {
         name: "octa bank",
@@ -92,11 +96,11 @@ module.exports = {
         await usersData.set(event.senderID, { money: userMoney - amount });
         fs.writeFile("bank.json", JSON.stringify(bankData), (err) => { if (err) throw err; });
         return message.reply(`${amount} $ has been deposited into your bank account.`);
-    } else if (command === "balance" && command === "bal") {
-const formattedBankBalance = parseFloat(bankBalance);
-  if (!isNaN(formattedBankBalance)) {
-    return message.reply(`Your bank account balance is ${balanceInFullForm} $.`);
-		}
+    } else if (command === "balance") {
+    const balance = bankData[user].bank !== undefined && !isNaN(bankData[user].bank) ? bankData[user].bank : 0;
+    const balanceInFullForm = formatNumberWithFullForm(balance);
+    return message.reply(`Your bank account balance is ${balanceInFullForm} $.
+    ${balance}`);
     } else if (command === "withdraw") {
         const balance = bankData[user].bank || 0;
         if (isNaN(amount) || amount <= 0) return message.reply("Please enter the amount you wish to withdraw from your bank account.");
