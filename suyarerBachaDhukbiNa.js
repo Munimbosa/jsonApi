@@ -1,9 +1,58 @@
 const fs = require("fs");
+function formatNumberWithFullForm(number) {
+    const fullForms = [
+        "",
+        "Thousand",
+        "Million",
+        "Billion",
+        "Trillion",
+        "Quadrillion",
+        "Quintillion",
+        "Sextillion",
+        "Septillion",
+        "Octillion",
+        "Nonillion",
+        "Decillion",
+        "Undecillion",
+        "Duodecillion",
+        "Tredecillion",
+        "Quattuordecillion",
+        "Quindecillion",
+        "Sexdecillion",
+        "Septendecillion",
+        "Octodecillion",
+        "Novemdecillion",
+        "Vigintillion",
+        "Unvigintillion",
+        "Duovigintillion",
+        "Tresvigintillion",
+        "Quattuorvigintillion",
+        "Quinvigintillion",
+        "Sesvigintillion",
+        "Septemvigintillion",
+        "Octovigintillion",
+        "Novemvigintillion",
+        "Trigintillion",
+        "Untrigintillion",
+        "Duotrigintillion",
+        "Googol",
+    ];
+
+    let fullFormIndex = 0;
+    while (number >= 1000 && fullFormIndex < fullForms.length - 1) {
+        number /= 1000;
+        fullFormIndex++;
+    }
+    const formattedNumber = number.toFixed(2);
+
+    return `${formattedNumber} ${fullForms[fullFormIndex]}`;
+}
+
 module.exports = {
     config: {
-        name: "octa bank",
+        name: "bank",
         version: "2.0",
-        author: "LøüFï/alrulex",
+        author: "sheikh",
         countDown: 5,
         role: 0,
         shortDescription: {
@@ -45,10 +94,11 @@ module.exports = {
         fs.writeFile("bank.json", JSON.stringify(bankData), (err) => { if (err) throw err; });
         return message.reply(`${amount} $ has been deposited into your bank account.`);
     } else if (command === "balance") {
-    const balance = bankData[user].bank !== undefined && !isNaN(bankData[user].bank) ? bankData[user].bank :0;
- 
-  return message.reply(`Your bank account balance is ${balance} $.`);
-    } else if (command === "withdraw") {
+    const balance = bankData[user].bank !== undefined && !isNaN(bankData[user].bank) ? bankData[user].bank : 0;
+    const balanceInFullForm = formatNumberWithFullForm(balance);
+    return message.reply(`Your bank account balance is ${balanceInFullForm} $.`);
+    }
+    else if (command === "withdraw") {
         const balance = bankData[user].bank || 0;
         if (isNaN(amount) || amount <= 0) return message.reply("Please enter the amount you wish to withdraw from your bank account.");
         if (amount > balance) return message.reply("The amount you want to withdraw is not available in your bank account.");
