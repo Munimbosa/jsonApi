@@ -1,51 +1,51 @@
 const fs = require("fs");
 function formatNumberWithFullForm(number) {
-    const fullForms = [
-        "",
-        "Thousand",
-        "Million",
-        "Billion",
-        "Trillion",
-        "Quadrillion",
-        "Quintillion",
-        "Sextillion",
-        "Septillion",
-        "Octillion",
-        "Nonillion",
-        "Decillion",
-        "Undecillion",
-        "Duodecillion",
-        "Tredecillion",
-        "Quattuordecillion",
-        "Quindecillion",
-        "Sexdecillion",
-        "Septendecillion",
-        "Octodecillion",
-        "Novemdecillion",
-        "Vigintillion",
-        "Unvigintillion",
-        "Duovigintillion",
-        "Tresvigintillion",
-        "Quattuorvigintillion",
-        "Quinvigintillion",
-        "Sesvigintillion",
-        "Septemvigintillion",
-        "Octovigintillion",
-        "Novemvigintillion",
-        "Trigintillion",
-        "Untrigintillion",
-        "Duotrigintillion",
-        "Googol",
-    ];
+  const fullForms = [
+    "",
+    "Thousand",
+    "Million",
+    "Billion",
+    "Trillion",
+    "Quadrillion",
+    "Quintillion",
+    "Sextillion",
+    "Septillion",
+    "Octillion",
+    "Nonillion",
+    "Decillion",
+    "Undecillion",
+    "Duodecillion",
+    "Tredecillion",
+    "Quattuordecillion",
+    "Quindecillion",
+    "Sexdecillion",
+    "Septendecillion",
+    "Octodecillion",
+    "Novemdecillion",
+    "Vigintillion",
+    "Unvigintillion",
+    "Duovigintillion",
+    "Tresvigintillion",
+    "Quattuorvigintillion",
+    "Quinvigintillion",
+    "Sesvigintillion",
+    "Septemvigintillion",
+    "Octovigintillion",
+    "Novemvigintillion",
+    "Trigintillion",
+    "Untrigintillion",
+    "Duotrigintillion",
+    "Googol",
+  ];
 
-    let fullFormIndex = 0;
-    while (number >= 1000 && fullFormIndex < fullForms.length - 1) {
-        number /= 1000;
-        fullFormIndex++;
-    }
-    const formattedNumber = number.toFixed(2);
+  let fullFormIndex = 0;
+  while (number >= 1000 && fullFormIndex < fullForms.length - 1) {
+    number /= 1000;
+    fullFormIndex++;
+  }
+  const formattedNumber = number.toFixed(2);
 
-    return `${formattedNumber} ${fullForms[fullFormIndex]}`;
+  return `${formattedNumber} ${fullForms[fullFormIndex]}`;
 }
 module.exports = {
     config: {
