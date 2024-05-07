@@ -1,4 +1,12 @@
 const fs = require("fs");
+
+
+// Function to get bank balance
+function getBankBalance(userId, bankData) {
+    return bankData[userId]?.bank || 0;
+}
+
+// Function to format number with full form
 function formatNumberWithFullForm(number) {
     const fullForms = [
         "",
@@ -47,7 +55,6 @@ function formatNumberWithFullForm(number) {
 
     return `${formattedNumber} ${fullForms[fullFormIndex]}`;
 }
-
 module.exports = {
     config: {
         name: "bank",
@@ -94,10 +101,10 @@ module.exports = {
         fs.writeFile("bank.json", JSON.stringify(bankData), (err) => { if (err) throw err; });
         return message.reply(`${amount} $ has been deposited into your bank account.`);
     } else if (command === "balance") {
-    const balance = bankData[user].bank !== undefined && !isNaN(bankData[user].bank) ? bankData[user].bank : 0;
+    const balance = getBankBalance(user, bankData);
     const balanceInFullForm = formatNumberWithFullForm(balance);
-    return message.reply(`Your bank account balance is ${balanceInFullForm} $.`);
-    }
+    return message.reply(`Your bank account balance is ${balanceInFullForm} $. ${balance}`);
+}
     else if (command === "withdraw") {
         const balance = bankData[user].bank || 0;
         if (isNaN(amount) || amount <= 0) return message.reply("Please enter the amount you wish to withdraw from your bank account.");
