@@ -146,7 +146,3 @@ module.exports = {
     }
 		}
           }
-
-
-make short this cmd 
-short the cmd mean make too many functions and json push have skill issue fix and give the full cmd
