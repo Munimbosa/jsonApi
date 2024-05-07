@@ -92,11 +92,12 @@ module.exports = {
         await usersData.set(event.senderID, { money: userMoney - amount });
         fs.writeFile("bank.json", JSON.stringify(bankData), (err) => { if (err) throw err; });
         return message.reply(`${amount} $ has been deposited into your bank account.`);
-    } else if (command === "balance" || command === "bal") {
-    const balance = bankData[user].bank !== undefined && !isNaN(bankData[user].bank) ? bankData[user].bank : 0;
-    const balanceInFullForm = formatNumberWithFullForm(balance);
+    } else if (command === "balance" && command === "bal") {
+const formattedBankBalance = parseFloat(bankBalance);
+  if (!isNaN(formattedBankBalance)) {
     return message.reply(`Your bank account balance is ${balanceInFullForm} $.`);
-		} else if (command === "withdraw") {
+		}
+    } else if (command === "withdraw") {
         const balance = bankData[user].bank || 0;
         if (isNaN(amount) || amount <= 0) return message.reply("Please enter the amount you wish to withdraw from your bank account.");
         if (amount > balance) return message.reply("The amount you want to withdraw is not available in your bank account.");
