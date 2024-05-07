@@ -1,12 +1,10 @@
 const fs = require("fs");
 
 
-// Function to get bank balance
-function getBankBalance(userId, bankData) {
-    return bankData[userId]?.bank || 0;
+function getBankBalance(userID, bankData) {
+    return bankData[userID]?.bank || 0;
 }
 
-// Function to format number with full form
 function formatNumberWithFullForm(number) {
     const fullForms = [
         "",
