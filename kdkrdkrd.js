@@ -16,25 +16,24 @@ module.exports = {
     author: "Sheikh" // no modify and if you modified then don't change credit
   },
   onStart: async function ({ args, message, event, api, usersData }) {
-    const { senderID } = event;
+        const { senderID } = event;
     const { getPrefix, formatNumberWithFullForm } = global.utils;
     const p = getPrefix(event.threadID);
     const user = parseInt(event.senderID);
     const bankDataPath = 'scripts/cmds/bank.json';
 
-    if (!fs.existsSync(bankDataPath)) {
-      const initialBankData = {};
-      fs.writeFileSync(bankDataPath, JSON.stringify(initialBankData), "utf8");
+    let bankData = {}; // Initialize bank data
+    if (fs.existsSync(bankDataPath)) {
+      bankData = JSON.parse(fs.readFileSync(bankDataPath, "utf8"));
+    } else {
+      fs.writeFileSync(bankDataPath, JSON.stringify(bankData), "utf8");
     }
-
-    const bankData = JSON.parse(fs.readFileSync(bankDataPath, "utf8"));
 
     const command = args[0]?.toLowerCase();
     const amount = parseInt(args[1]);
     const recipientUID = parseInt(args[2]);
     const userMoney = await usersData.get(senderID, "money");
     const bankBalance = bankData[user]?.bank || 0;
-
     switch (command) {
       case "deposit":
         if (isNaN(amount) || amount <= 0) {
